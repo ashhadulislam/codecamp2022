@@ -210,18 +210,18 @@ def test_model(df):
 
 
 
-label_map={
-    0:"Chickenpox",
-    1:"Measles",
-    2:"Monkeypox",
-    3:"Normal"
-}
-classes = ('Chickenpox', 'Measles', 'Monkeypox', 'Normal')
-PATH = 'models/resnet18_net.pth'
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-data_transform = transforms.Compose([transforms.Grayscale(num_output_channels=1),
-                                     transforms.Resize((64,64)),
-                                     transforms.ToTensor()])
+# label_map={
+#     0:"Chickenpox",
+#     1:"Measles",
+#     2:"Monkeypox",
+#     3:"Normal"
+# }
+# classes = ('Chickenpox', 'Measles', 'Monkeypox', 'Normal')
+# PATH = 'models/resnet18_net.pth'
+# device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# data_transform = transforms.Compose([transforms.Grayscale(num_output_channels=1),
+#                                      transforms.Resize((64,64)),
+#                                      transforms.ToTensor()])
 
 
 
