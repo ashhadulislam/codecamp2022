@@ -128,6 +128,17 @@ def load_image(image_file):
     img = Image.open(image_file)
     return img
 
+
+def replaceNewValueWith_New(df,mapp_dic,column):
+    for index,row in df.iterrows():
+        drg_combine=row[column]
+        if drg_combine not in mapp_dic[column]:
+            df.at[index,column]="New"                    
+    return df
+
+
+
+
 def pre_process(data_file):
 
     print("File is ",data_file)
@@ -157,7 +168,17 @@ def pre_process(data_file):
                  "DISCH_DISPOSITION", "ACCOMMODATION", "LAST_IP_DX_ICD", "SAME_DRG", 
                  "SAME_PRINCIPAL_DIAGNOSIS", "SAME_ATTENDING_PHYSICIAN", "PRINCIPAL_DIAG", "FINAL_DRG_CODE", "PRINCIPAL_PROC",
                 "drg_combine","prc_combine"]
+
+
+
     mapp_dic=pickle.load(open("data/saves/mapp_dic.p","rb"))
+
+    for col in mapp_dic.keys():
+        print(col)
+        df=replaceNewValueWith_New(df,mapp_dic,col)
+
+
+
 
     df.update(df[list(mapp_dic)].apply(lambda col: col.map(mapp_dic[col.name])))
 
@@ -198,10 +219,21 @@ def test_model(df):
 
     # acc=(con[0][0]+con[1][1])/np.sum(con)
     # print(acc)
-    print(y_hat)
+    y_proba_readmission=y_proba[:,1]
+    print(y_proba_readmission)
+    print(np.min(y_proba_readmission),np.max(y_proba_readmission))
+
+    # y_proba_norm=(y_proba_readmission-np.min(y_proba_readmission))/(np.max(y_proba_readmission)-np.min(y_proba_readmission))
+    y_hat[y_proba_readmission>0.15]=1
+    y_hat[y_proba_readmission<=0.15]=0  
+    y_proba=y_proba_readmission
+
+    print("probabs are ",y_proba)
+
+
 
     df["predictions"]=y_hat
-    df["probability_readmission"]=list(y_proba[:,1])
+    df["probability_readmission"]=list(y_proba)
 
     return df
 

@@ -36,6 +36,7 @@ def app():
             df2 = df.drop_duplicates(subset=["MRN"], keep=False)
 
             percents=[(1,0.9),(0.9,0.8),(0.8,0.7),(0.7,0.6),(0.6,0.5),(0.5,0.4),(0.4,0.3)]
+            percents=[(0.6,0.3),(0.3,0.15),(0.15,0.025),(0.025,0.02),(0.02,0)]
             counts_list=[]
             print("calc count")
             for percent_range in percents:
@@ -43,14 +44,14 @@ def app():
                 counts_list.append(counts)
             print(counts_list)
 
-            perc_range=['>90%', '80-90%', '70-80%','60-70%','50-60%','40-50%','30-40%']
+            perc_range=['>90%', '80-90%', '70-80%','60-70%','50-60%']
 
             fig = go.Figure([go.Bar(x=perc_range, y=counts_list)])
             st.plotly_chart(fig, use_container_width=True)
 
 
             # give details about patients with high percentage
-            percentage_val=(1,0.6)
+            percentage_val=(0.6,0.1)
             dic_nry=commons.get_details(df2,df_bkup,percentage_val)
 
             print(dic_nry)
