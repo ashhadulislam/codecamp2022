@@ -15,7 +15,7 @@ import pickle
 
 import pandas as pd
 import numpy as np
-
+from copy import deepcopy
 
 
 from PIL import Image
@@ -137,6 +137,8 @@ def pre_process(data_file):
 
     df=convert_age(df,"AGE")
 
+    df_bkup=deepcopy(df)
+
     
     # to combine the Diagnosys and processes
     cols_to_combine=['PRINCIPAL_DIAG', 'ADDITIONAL_DIAG1', 'ADDITIONAL_DIAG2',
@@ -174,14 +176,11 @@ def pre_process(data_file):
         'DurationStay', 'drg_combine', 'prc_combine',"ADMIT_DATE","DISCH_DT_TM"]
 
     df=df[keep_cols]        
+    MRN_list=list(df["MRN"])
     df=df.drop(columns=["MRN","ENCOUNTER_NUMBER","ADMIT_DATE","DISCH_DT_TM"])
 
-        
+    return df_bkup,df,MRN_list
 
-
-
-
-    return df
 
 
 def test_model(df):
@@ -193,6 +192,7 @@ def test_model(df):
 
     # change lAter
     y_hat=clf.predict(X)
+    y_proba=clf.predict_proba(X)
     # con=confusion_matrix(y,y_hat)
     # print(con)
 
@@ -201,8 +201,54 @@ def test_model(df):
     print(y_hat)
 
     df["predictions"]=y_hat
+    df["probability_readmission"]=list(y_proba[:,1])
 
     return df
+
+
+def count_more_than(df,percent_range):
+    df_prob=df[(df["probability_readmission"]<percent_range[0]) & (df["probability_readmission"]>percent_range[1])]
+    print(df_prob.shape[0])
+    return df_prob.shape[0]
+
+
+
+
+def get_details(df_with_pred,df_patient_details,percent_range):
+    # df_with_pred is the smallerfile
+
+    df_with_pred_filt=df_with_pred[(df_with_pred["probability_readmission"]<percent_range[0]) & (df_with_pred["probability_readmission"]>percent_range[1])]
+
+    dic_nry={}
+    dic_nry["MRN"]=[]
+    dic_nry["AGE"]=[]
+    dic_nry["GENDER"]=[]
+    dic_nry["DISCHARGE_FACILITY"]=[]
+    dic_nry["MEDICAL_SERVICE"]=[]
+    dic_nry["PRINCIPAL_DIAG_TXT"]=[]
+    dic_nry["PRINCIPAL_PROC_TXT"]=[]
+
+
+    for index,row in df_with_pred_filt.iterrows():
+        print("for patient ",row["MRN"])
+
+        df_patient_details_filt=df_patient_details[df_patient_details["MRN"]==row["MRN"]].head(1)
+        print(df_patient_details_filt.shape)
+        # print(df_patient_details_filt.head())
+
+        dic_nry["MRN"].append(list(df_patient_details_filt["MRN"])[0])
+        dic_nry["AGE"].append(list(df_patient_details_filt["AGE"])[0])
+        dic_nry["GENDER"].append(list(df_patient_details_filt["GENDER"])[0])
+        dic_nry["DISCHARGE_FACILITY"].append(list(df_patient_details_filt["DISCHARGE_FACILITY"])[0])
+        dic_nry["MEDICAL_SERVICE"].append(list(df_patient_details_filt["MEDICAL_SERVICE"])[0])
+        dic_nry["PRINCIPAL_DIAG_TXT"].append(list(df_patient_details_filt["PRINCIPAL_DIAG_TXT"])[0])
+        dic_nry["PRINCIPAL_PROC_TXT"].append(list(df_patient_details_filt["PRINCIPAL_PROC_TXT"])[0])        
+
+    return dic_nry
+
+
+
+
 
 
 
